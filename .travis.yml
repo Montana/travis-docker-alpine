@@ -1,56 +1,10 @@
 language: bash
 
-os:
-  - linux
-  - osx
-
-env:
-  matrix:
-    - MODE="system-info"
-    - MODE="net-check"
-    - MODE="random-fun"
-
 services:
   - docker
 
-before_install:
-  - echo "🔧 Bootstrapping Travis magic..."
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update && sudo apt-get install -y jq figlet lolcat fortune; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install jq figlet lolcat fortune || true; fi
-
 script:
-  - echo "===================================" | lolcat
-  - figlet "Travis Magic" | lolcat
-  - echo "===================================" | lolcat
-  - echo "Build: $TRAVIS_BUILD_NUMBER  |  Job: $TRAVIS_JOB_NUMBER" | lolcat
-  - echo "OS: $TRAVIS_OS_NAME  |  Mode: $MODE" | lolcat
-  - echo
-
-  - if [[ "$MODE" == "system-info" ]]; then
-      echo "=== SYSTEM INFO ===" | lolcat;
-      uname -a | lolcat;
-      echo "CPUs: $(nproc || sysctl -n hw.ncpu)" | lolcat;
-      echo "Memory:"; free -h || vm_stat | head -5;
-      docker info | head -10;
-    fi
-
-  - if [[ "$MODE" == "net-check" ]]; then
-      echo "=== NETWORK CHECKS ===" | lolcat;
-      curl -I https://travis-ci.com 2>/dev/null | head -5 | lolcat;
-      echo "--- Pinging github.com ---" | lolcat;
-      ping -c 3 github.com | lolcat || true;
-      echo "--- API Call (Travis repo stats) ---" | lolcat;
-      curl -s https://api.github.com/repos/travis-ci/travis-ci | jq '{name, stars: .stargazers_count}' | lolcat;
-    fi
-
-  - if [[ "$MODE" == "random-fun" ]]; then
-      echo "=== RANDOM FUN ===" | lolcat;
-      fortune | lolcat;
-      echo "ASCII splash:" | lolcat;
-      figlet "Stay CI Cool" | lolcat;
-      echo "--- Docker Easter egg ---" | lolcat;
-      docker run --rm alpine echo "🐳 Hello from inside Docker!" | lolcat;
-    fi
-
-after_success:
-  - echo "✨ Job $TRAVIS_JOB_NUMBER finished successfully!" | lolcat
+  - docker pull alpine:latest
+  - docker run --rm alpine:latest echo "Hello from inside Alpine!" 
+  - docker run --rm alpine:latest sh -c "cat /etc/os-release && uname -a"
+  - docker run --rm alpine:latest sh -c "apk add --no-cache figlet > /dev/null && figlet 'Alpine!'"
